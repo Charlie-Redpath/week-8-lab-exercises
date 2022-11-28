@@ -8,24 +8,36 @@ import time
 from server.settings import BASE_DIR
 from django.shortcuts import redirect
 from django.http import (HttpResponse, HttpResponseBadRequest, 
-  HttpResponseServerError, HttpRequest)
+  HttpResponseServerError, HttpRequest, HttpResponseRedirect)
 from typing import Dict
 from dataclasses import dataclass
 from collections import defaultdict
 
 
+# Profanity
+try:
+  with open(os.path.join(BASE_DIR, "API/profanity.txt")) as f:
+    PROFANITY = f.read().split("\n")
+  if not PROFANITY:
+    PROFANITY = False
+except FileNotFoundError:
+  PROFANITY = False
+
 @dataclass
 class User:
   """Simple User dataclass for logging"""
   failures: int
+  # Timeout warnings
+  warnings: float
   # Last post/get *include* fails
-  last_req: float
+  last_req: float = 0
   # When the last block started
   blocked_at: float = 0
 
 USERS: Dict[str, User] = defaultdict(lambda: User(0, 0))
 MIN_SEP = .01  # Requests must be .01 seconds apart
 MAX_FAIL = 10  # Maximum failures before timeout
+MAX_WARN = 3  # Number of MIN_SEP violations
 FAIL_TIMEOUT = 60  # Timeout in seconds after MAX_FAIL hit
 
 
@@ -57,16 +69,20 @@ def allowed(u: User, prev_req: float) -> int:
   """
   t = time.time()
 
-  if u.failures > MAX_FAIL:
+  if u.failures >= MAX_FAIL:
     u.blocked_at = t
     u.failures = 0
     return 1
+
+  if u.warnings >= MAX_WARN:
+    return 2
 
   if t - u.blocked_at < FAIL_TIMEOUT:
     return 1
 
   if t - prev_req < MIN_SEP:
-    return 2
+    u.warnings += 1
+    return 0
 
   return 0
 
@@ -127,7 +143,7 @@ def get_article(request: HttpRequest, id: int, bypass_limits=False):
       content = article["content"]
       date_published = article["date_published"]
     except KeyError:
-      fail(ip)
+      # Don't fail this as is a sever error
       return HttpResponseServerError("Bad file format, please let us know.")
     
     # Got all content ok
@@ -191,9 +207,17 @@ def post_article(request: HttpRequest, bypass_limits=False):
     fail(ip)
     return HttpResponseBadRequest("Bad data format. See docs.")
 
-  # Data was okay
+  # Check against profanity file
+  if PROFANITY:
+    for key in ["title", "sub_heading", "content"]:
+      for word in PROFANITY:
+        article[key].replace(word, "*" * len(word))
   else:
-    with open(f"{path}{id}", "w") as f:
-      json.dump(article, f)
+    # Don't fail this as is a sever error
+    return HttpResponseServerError("Profanity couldn't be parsed. Let us know.")
 
-    return HttpResponse(f"Article #{id} made.")
+  # Data was okay
+  with open(f"{path}{id}", "w") as f:
+    json.dump(article, f)
+
+  return HttpResponseRedirect(f"/API/article/{id}")
