@@ -24,17 +24,17 @@ class User:
 USERS: Dict[str, User] = defaultdict(lambda: User(0, time.time(), time.time()))
 
 
-def test(request):
+def test(request: HttpRequest):
   """Simple test endpoint"""
   return HttpResponse("Hello, world.")
 
 
-def redirect_docs(request):
+def redirect_docs(request: HttpRequest):
   """Redirects to root of docs"""
   return redirect("/docs")
 
 
-def get_article(request, id: int):
+def get_article(request: HttpRequest, id: int):
   """Endpoint to get an article, with ID = id
 
     If article id exists, returns the JSON
@@ -70,7 +70,7 @@ def get_article(request, id: int):
         "id": id, "title": title, "sub_heading": sub_heading, "content": content, "date_published": date_published
       }))
 
-def post_article(request):
+def post_article(request: HttpRequest):
   """Endpoint to add an article
   
     Requires POST data in form:
