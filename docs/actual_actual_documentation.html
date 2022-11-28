@@ -1,0 +1,25 @@
+<h3>API documentation</h3>
+
+<p>The API can: </p>
+<ul>
+    <li>Request an article to be returned.</li>
+    <li>Add an artical.</li>
+</ul>
+
+<h4>GET article</h4>
+<p>
+  This command returns an article when given the ID.<br>
+  The format is 'API GET article/&lt;ID&gt; with the ID number of the article you want. <br>
+  This returns the atricle as a .json file. <br>
+</p>
+
+<h4>POST article</h4>
+<p>
+  This command adds an article when given the title, sub heading and content<br>
+  The request must be in the format<br>
+  {<br>
+    "title": &lt;title&gt;,<br>
+    "sub_heading": &lt;subheading&gt;,<br>
+    "content": &lt;title&gt;,<br>
+  }<br>
+</p>
