@@ -4,8 +4,19 @@ import time
 
 from server.settings import BASE_DIR
 from django.shortcuts import redirect
-from django.core.serializers import serialize
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.http import (HttpResponse, HttpResponseBadRequest, 
+  HttpResponseServerError, HttpRequest)
+from typing import Dict
+from dataclasses import dataclass
+from collections import defaultdict
+
+@dataclass
+class User:
+  failures: int
+  last_post: float
+  last_get: float
+
+USERS: Dict[str, User] = defaultdict(lambda: User(0, time.time(), time.time()))
 
 
 def test(request):
