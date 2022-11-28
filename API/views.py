@@ -42,7 +42,7 @@ def post_article(request):
 
   path = os.path.join(BASE_DIR, "articles/")
   id = 0
-  while os.path.exists(f"{path}/{id}"): pass
+  while os.path.exists(f"{path}/{id}"): id += 1 
 
   post_data = request.POST
   try:
