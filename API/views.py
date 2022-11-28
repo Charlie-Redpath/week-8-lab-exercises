@@ -13,15 +13,10 @@ from typing import Dict
 from dataclasses import dataclass
 from collections import defaultdict
 
+# Profanity filter
+from .profanity import profanity_filter
+FILTER = profanity_filter.ProfanityFilter()
 
-# Profanity
-try:
-  with open(os.path.join(BASE_DIR, "API/profanity.txt")) as f:
-    PROFANITY = f.read().split("\n")
-  if not PROFANITY:
-    PROFANITY = False
-except FileNotFoundError:
-  PROFANITY = False
 
 @dataclass
 class User:
@@ -207,14 +202,9 @@ def post_article(request: HttpRequest, bypass_limits=False):
     fail(ip)
     return HttpResponseBadRequest("Bad data format. See docs.")
 
-  # Check against profanity file
-  if PROFANITY:
-    for key in ["title", "sub_heading", "content"]:
-      for word in PROFANITY:
-        article[key].replace(word, "*" * len(word))
-  else:
-    # Don't fail this as is a sever error
-    return HttpResponseServerError("Profanity couldn't be parsed. Let us know.")
+  # Clean profanity
+  for key in ("title", "sub_heading", "content"):
+    article[key] = FILTER.censor(article[key])
 
   # Data was okay
   with open(f"{path}{id}", "w") as f:
