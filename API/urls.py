@@ -5,4 +5,6 @@ from . import views
 urlpatterns = [
     path('article/<int:id>', views.get_article, name="article"),
     path('article', views.post_article, name="post_article"),
+    path("", views.redirect_docs),
+    path("test", views.test)
 ]

@@ -3,18 +3,22 @@ import json
 import time
 
 from server.settings import BASE_DIR
-from django.shortcuts import render
+from django.shortcuts import redirect
+from django.core.serializers import serialize
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 
 
 def test(request):
-    return HttpResponse("Hello, world.")
+  return HttpResponse("Hello, world.")
+
+def redirect_docs(request):
+  return redirect("/docs")
 
 def get_article(request, id: int):
   if request.method != 'GET':
     return HttpResponseBadRequest("This endpoint only accepts GET requests.")
 
-  path = os.path.join(BASE_DIR, f"articles/{id}.json")
+  path = os.path.join(BASE_DIR, f"articles/{id}")
   try:
     with open(path) as f:
       article = json.loads(f.read())
@@ -26,15 +30,15 @@ def get_article(request, id: int):
   else:
     try:
       title = article["title"]
-      sub_heading = article["subheading"]
+      sub_heading = article["sub_heading"]
       content = article["content"]
-      date_published = article["date"]
+      date_published = article["date_published"]
     except KeyError:
       return HttpResponseServerError("Bad file format, please let us know.")
     else:
-      return HttpResponse({
+      return HttpResponse(json.dumps({
         "id": id, "title": title, "sub_heading": sub_heading, "content": content, "date_published": date_published
-      })
+      }))
 
 def post_article(request):
   if request.method != 'POST':
@@ -42,7 +46,7 @@ def post_article(request):
 
   path = os.path.join(BASE_DIR, "articles/")
   id = 0
-  while os.path.exists(f"{path}/{id}"): id += 1 
+  while os.path.exists(f"{path}{id}"): id += 1 
 
   post_data = request.POST
   try:
@@ -56,7 +60,7 @@ def post_article(request):
   except KeyError:
     return HttpResponseBadRequest("Bad data format. See docs.")
   else:
-    with open(path) as f:
+    with open(f"{path}{id}", "w") as f:
       json.dump(article, f)
 
     return HttpResponse(f"Article #{id} made.")
