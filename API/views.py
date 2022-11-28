@@ -1,5 +1,6 @@
 import os
 import json
+import time
 
 from server.settings import BASE_DIR
 from django.shortcuts import render
@@ -50,7 +51,7 @@ def post_article(request):
       "title": post_data["title"],
       "sub_heading": post_data["sub_heading"],
       "content": post_data["content"],
-      "date_published": post_data["date_published"]
+      "date_published": time.strftime("%d/%m/%Y")
     }
   except KeyError:
     return HttpResponseBadRequest("Bad data format. See docs.")
