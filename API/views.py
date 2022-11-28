@@ -80,7 +80,7 @@ def redirect_docs(request: HttpRequest):
   return redirect("/docs")
 
 
-def get_article(request: HttpRequest, id: int, /, bypass_limits=False):
+def get_article(request: HttpRequest, id: int, bypass_limits=False):
   """Endpoint to get an article, with ID = id
 
     If article id exists, returns the JSON
@@ -137,7 +137,7 @@ def get_article(request: HttpRequest, id: int, /, bypass_limits=False):
       }))
 
 
-def post_article(request: HttpRequest, /, bypass_limits=False):
+def post_article(request: HttpRequest, bypass_limits=False):
   """Endpoint to add an article
   
     Requires POST data in form:
