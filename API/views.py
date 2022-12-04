@@ -7,7 +7,7 @@ import time
 
 from server.settings import BASE_DIR
 from django.shortcuts import redirect
-from django.http import (HttpResponse, HttpResponseBadRequest, 
+from django.http import (HttpResponse, HttpResponseBadRequest,
   HttpResponseServerError, HttpRequest, HttpResponseRedirect)
 from typing import Dict
 from dataclasses import dataclass
@@ -56,7 +56,7 @@ def fail(ip: str):
 def allowed(u: User, prev_req: float) -> int:
   """Determines whether to allow the request, based on the user
     prev_req: the time of the request *before* this one
-  
+
     Return:
       0: allowed
       1: timeout from fails
@@ -70,6 +70,8 @@ def allowed(u: User, prev_req: float) -> int:
     return 1
 
   if u.warnings >= MAX_WARN:
+    u.blocked_at = t
+    u.warnings = 0
     return 2
 
   if t - u.blocked_at < FAIL_TIMEOUT:
@@ -140,7 +142,7 @@ def get_article(request: HttpRequest, id: int, bypass_limits=False):
     except KeyError:
       # Don't fail this as is a sever error
       return HttpResponseServerError("Bad file format, please let us know.")
-    
+
     # Got all content ok
     else:
       return HttpResponse(json.dumps({
@@ -150,7 +152,7 @@ def get_article(request: HttpRequest, id: int, bypass_limits=False):
 
 def post_article(request: HttpRequest, bypass_limits=False):
   """Endpoint to add an article
-  
+
     Requires POST data in form:
       {
         "title": <title>,
@@ -186,7 +188,7 @@ def post_article(request: HttpRequest, bypass_limits=False):
   # Find next available file
   path = os.path.join(BASE_DIR, "articles/")
   id = 0
-  while os.path.exists(f"{path}{id}"): id += 1 
+  while os.path.exists(f"{path}{id}"): id += 1
 
   # Get data from request
   post_data = request.POST
