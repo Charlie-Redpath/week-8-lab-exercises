@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <title>The Actual Documentation</title>
+  </head>
+  <body>
+    <h1>The <i>actual</i> docs for the API</h1>
+    <hr>
+
+    <h2>/API</h2>
+
+    <h4>Notes:</h4>
+    You will be timed out for FAIL_TIMEOUT seconds (60s) after either:
+    <ul>
+      <li>MAX_FAIL (10) failed requests (ie., malformed data), or</li>
+      <li>MAX_WARN (3) violations of MIN_SEP (requests must be MIN_SEP seconds (.01s) apart).</li>
+    </ul>
+
+    <h4>GET /</h4>
+    <p>Redirects to /docs</p>
+
+    <h4>GET /API/article/&lt;id&gt;</h4>
+    <p>
+      Gets article #id, in form: <br>
+      <blockquote>
+        {<br>
+          "id": ...,<br>
+          "title": ...,<br>
+          "sub_heading": ...,<br>
+          "content": ...,<br>
+          "date_published": ...<br>
+        }
+      </blockquote>
+    </p>
+
+    <h4>POST /API/article</h4>
+    <p>
+      Post an article; the following data is required:
+      <blockquote>
+        {<br>
+          "title": ...,<br>
+          "sub_heading": ...,<br>
+          "content": ...,<br>
+        }
+      </blockquote>
+    </p>
+  </body>
+</html>

@@ -14,6 +14,10 @@ def docs2():
   """Documentation page #3"""
   return render(None, "actual_actual_documentation.html")
 
+def proper_docs(request):
+  """The **actual** docs"""
+  return render(None, "proper_docs.html")
+
 def docs_n(request, n: int):
   match n:
     case 1:
