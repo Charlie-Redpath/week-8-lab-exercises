@@ -208,7 +208,7 @@ def post_article(request: HttpRequest, bypass_limits=False):
   for key in ("title", "sub_heading", "content"):
     article[key] = FILTER.censor(article[key])
 
-  key = "".join([ord("a") + random.randint(0, 63) for _ in range(10)])
+  key = "".join([chr(ord("a") + random.randint(0, 25)) for _ in range(10)])
   article["key"] = hash(key)
 
   # Data was okay
@@ -218,7 +218,7 @@ def post_article(request: HttpRequest, bypass_limits=False):
   return HttpResponseRedirect(f"/API/article/{id}?key={key}")
 
 
-def delete_article(request: HttpRequest, bypass_limits=False):
+def delete_article(request: HttpRequest, id: int, bypass_limits=False):
   """Endpoint to delete an article, given the key:
 
     POST data:
