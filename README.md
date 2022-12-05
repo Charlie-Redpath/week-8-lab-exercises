@@ -1,4 +1,4 @@
-# Amazing Blog API (ABAPI)
+# A Beautiful Blog API (ABBA)
 
 ## Running 1st time
 `mkdir articles`
