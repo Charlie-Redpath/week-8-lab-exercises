@@ -4,6 +4,7 @@
 import os
 import json
 import time
+import random
 
 from server.settings import BASE_DIR
 from django.shortcuts import redirect
@@ -129,7 +130,6 @@ def get_article(request: HttpRequest, id: int, bypass_limits=False):
     fail(ip)
     return HttpResponseBadRequest("File not found.")
   except json.JSONDecodeError:
-    fail(ip)
     return HttpResponseServerError("Bad file format, please let us know.")
 
   # Got the file contents fine
@@ -161,7 +161,7 @@ def post_article(request: HttpRequest, bypass_limits=False):
       }
     Other fields will be ignored
 
-    On success, returns a message containing the new id
+    On success, redirects to the new article with the deletion key as a parameter
   """
 
   ip = get_client_ip(request)
@@ -208,8 +208,67 @@ def post_article(request: HttpRequest, bypass_limits=False):
   for key in ("title", "sub_heading", "content"):
     article[key] = FILTER.censor(article[key])
 
+  key = "".join([ord("a") + random.randint(0, 63) for _ in range(10)])
+  article["key"] = hash(key)
+
   # Data was okay
   with open(f"{path}{id}", "w") as f:
     json.dump(article, f)
 
-  return HttpResponseRedirect(f"/API/article/{id}")
+  return HttpResponseRedirect(f"/API/article/{id}?key={key}")
+
+
+def delete_article(request: HttpRequest, bypass_limits=False):
+  """Endpoint to delete an article, given the key:
+
+    POST data:
+      {
+        "key": <key>
+      }
+  """
+
+  ip = get_client_ip(request)
+  prev = USERS[ip].last_req
+  USERS[ip].last_req = time.time()
+
+  # Check allowed
+  if not bypass_limits:
+    match allowed(USERS[ip], prev):
+      case 1:
+        return HttpResponseBadRequest(
+          f"Too many failed requests, try again in {FAIL_TIMEOUT}s."
+        )
+      case 2:
+        resp = HttpResponse(f"You have been rate limited; limit requests to {MIN_SEP}/s")
+        resp.status_code = 429
+        return resp
+
+  # Only accepts POST
+  if request.method != 'POST':
+    fail(ip)
+    return HttpResponseBadRequest("This endpoint only accepts POST requests. See docs.")
+
+  # Get key from article and request
+  path = os.path.join(BASE_DIR, f"articles/{id}")
+  try:
+    with open(path) as f:
+      article = json.loads(f.read())
+  except FileNotFoundError:
+    fail(ip)
+    return HttpResponseBadRequest("File not found.")
+  except json.JSONDecodeError:
+    return HttpResponseServerError("Bad file format, please let us know.")
+
+  try:
+    key = request.POST["key"]
+  except KeyError:
+    fail(ip)
+    return HttpResponseBadRequest("Need `key` in post data.")
+
+  # Check key
+  if hash(key) == article["key"]:
+    os.remove(path)
+    return HttpResponse(f"Article {id} deleted.")
+  else:
+    fail(ip)
+    return HttpResponseBadRequest("Wrong key.")
