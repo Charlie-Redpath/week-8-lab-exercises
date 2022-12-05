@@ -31,7 +31,7 @@ class User:
   blocked_at: float = 0
 
 USERS: Dict[str, User] = defaultdict(lambda: User(0, 0))
-MIN_SEP = .01  # Requests must be .01 seconds apart
+MIN_SEP = .1  # Requests must be .01 seconds apart
 MAX_FAIL = 10  # Maximum failures before timeout
 MAX_WARN = 3  # Number of MIN_SEP violations
 FAIL_TIMEOUT = 60  # Timeout in seconds after MAX_FAIL hit
